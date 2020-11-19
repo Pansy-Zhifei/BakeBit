@@ -1,50 +1,47 @@
-# 魔改NanoHatOLED
+# Modified NanoHatOLED
 
-GitHub [English](https://github.com/Peter-Zhifei/BakeBit/blob/master/README_en.md) | [日本語]()
+GitHub [中文](https://github.com/Peter-Zhifei/BakeBit/blob/master/README.md)[日本語]()
 
-Gitee [English](https://gitee.com/peter-Zhifei/BakeBit/blob/master/README_en.md) | [日本語]()
+Gitee [中文](https://gitee.com/peter-Zhifei/BakeBit/blob/master/README.md)[日本語]()
 
-## 修改
 
-- 增加OLED熄屏功能-1分钟后自动熄屏
+## Changed
 
-- 熄屏后按任意键即可回到熄屏前的屏幕
+- You can turn off the display after 1 minute automatically.
 
-- 优化了IP地址的显示，没有连接是显示127.0.0.1
+- When you press any key you can back to the previous display.
 
-## 安装
+- Optimize the IP display.
 
-- 替换 /Software/Python/bakebit_nanohat_oled.py
+## Setup
+
+- Exchange /Software/Python/bakebit_nanohat_oled.py
 
 ```
 $ su root
-# 使用root账户
+# use root account
 $ sudo pkill -f bakebit_nanohat_oled.py
-# 终止进程
+# End the process
 $ cd NanoHatOLED
-# 定向至NanoHatOLED目录下
+# To /NanoHatOLED
 $ rm -rf BakeBit
-# 删除目录下的所有文件
+# Delete all file
 $ git clone https://github.com/Peter-Zhifei/BakeBit.git
-# 把我的克隆下来
-# 网不好的可以 $ git clone https://gitee.com/peter-zhifei/BakeBit.git
+# Clone my git
+# For Chinese you can $ git clone https://gitee.com/peter-zhifei/BakeBit.git
 $ cd BakeBit/Software/Python/
-# 定向
+# To thefile
 $ sudo python bakebit_nanohat_oled.py &
-# 启动&后台运行
+# Start and backgrounder
 $ sudo reboot
-# 重启
+# Reboot
 ```
 
-## 错误反馈
+## Issues
 
-请在issue提交
+Please put issues to the previous issues
 
-## 开源许可
-
-依旧遵循MIT开源许可，不作商用
-
-# 原来的README
+# Previous README
 
 ## **BakeBit**
 

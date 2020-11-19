@@ -45,6 +45,8 @@ import threading
 import signal
 import os
 import socket
+import fcntl
+import struct
 
 global width
 width=128
@@ -57,6 +59,11 @@ global pageIndex
 pageIndex=0
 global showPageIndicator
 showPageIndicator=False
+global pageSleep
+pageSleep=60
+# After 60 seconds the page will sleep
+global pageSleepCountdown
+pageSleepCountdown=pageSleep
 
 oled.init()  #initialze SEEED OLED display
 oled.setNormalDisplay()      #Set display to normal mode (i.e non-inverse mode)
@@ -82,6 +89,14 @@ font11 = ImageFont.truetype('DejaVuSansMono.ttf', 11);
 
 global lock
 lock = threading.Lock()
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
 
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -111,6 +126,7 @@ def draw_page():
     global width
     global height
     global lock
+    global pageSleepCountdown
 
     lock.acquire()
     is_drawing = drawing
@@ -119,6 +135,16 @@ def draw_page():
 
     if is_drawing:
         return
+    # if the countdown is zero we should be sleeping (blank the display to reduce screenburn)
+    if pageSleepCountdown == 1:
+        oled.clearDisplay()
+        pageSleepCountdown = 0
+
+    if pageSleepCountdown == 0:
+        return
+
+    pageSleepCountdown = pageSleepCountdown - 1
+
 
     lock.acquire()
     drawing = True
@@ -149,13 +175,18 @@ def draw_page():
     elif page_index==1:
         # Draw some shapes.
         # First define some constants to allow easy resizing of shapes.
-        padding = 2
+        #padding = 2
+	padding = 0
         top = padding
         bottom = height-padding
         # Move left to right keeping track of the current x position for drawing shapes.
         x = 0
-	IPAddress = get_ip()
-        cmd = "top -bn1 | grep load | awk '{printf \"CPU Load: %.2f\", $(NF-2)}'"
+	#IPAddress = get_ip()
+	try:
+            IPAddress = get_ip_address('eth0')
+        except:
+            IPAddress = get_ip()
+        cmd = "top -bn1 | grep load | awk '{printf \"Load average: %.2f\", $(NF-2)}'"
         CPU = subprocess.check_output(cmd, shell = True )
         cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%sMB %.2f%%\", $3,$2,$3*100/$2 }'"
         MemUsage = subprocess.check_output(cmd, shell = True )
@@ -218,6 +249,15 @@ def update_page_index(pi):
 
 def receive_signal(signum, stack):
     global pageIndex
+    global pageSleepCountdown
+    global pageSleep
+
+    # check if screen is black then just return from sleep without signal processing
+    if pageSleepCountdown == 0:
+        pageSleepCountdown = pageSleep # user pressed a button, reset the sleep counter
+        return
+    else:
+        pageSleepCountdown = pageSleep
 
     lock.acquire()
     page_index = pageIndex
